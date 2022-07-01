@@ -1,4 +1,4 @@
-package main
+package featuretoggle
 
 // values represents the feature toggle key-value pairs
 type values map[string]interface{}

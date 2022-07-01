@@ -16,7 +16,7 @@ Este método receberá uma série de pares "chave/valor" contendo os feature tog
 
 Example:
 ```go
-import featuretoggle "github.com/delivery-much/dm-go-ft"
+import "github.com/delivery-much/dm-go-ft/featuretoggle"
 
 ...
 
@@ -36,7 +36,7 @@ Pode-se usar então o método `IsEnabled` para verificar o feature toggle instan
 
 Example:
 ```go
-import featuretoggle "github.com/delivery-much/dm-go-ft"
+import "github.com/delivery-much/dm-go-ft/featuretoggle"
 
 ...
 
