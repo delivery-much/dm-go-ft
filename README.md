@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/dm-got-ft.png" width="250"></p>
+<p align="center"><img src="assets/dm-go-ft.png" width="250"></p>
 
 <h1 align="center">
   dm-go-ft
