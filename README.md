@@ -24,13 +24,14 @@ import "github.com/delivery-much/dm-go-ft/featuretoggle"
 
 ...
 
-featuretoggle.Init(featuretoggle.Config{
+err := featuretoggle.Init(featuretoggle.Config{
   Host: "MyHost",
   Port: "0303",
   DB: 1,
   ServiceName: "MyService",
 })
 ```
+o método `Init` retorna um erro caso falhe para conectar no redis.
 
 > de preferência, o Init deverá ser chamado uma vez, ao subir do projeto.
 
