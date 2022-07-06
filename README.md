@@ -26,9 +26,9 @@ import "github.com/delivery-much/dm-go-ft/featuretoggle"
 
 featuretoggle.Init(featuretoggle.Config{
   Host: "MyHost",
-	Port: "0303",
-	DB: 1,
-	ServiceName: "MyService",
+  Port: "0303",
+  DB: 1,
+  ServiceName: "MyService",
 })
 ```
 
