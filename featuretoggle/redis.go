@@ -1,14 +1,14 @@
 package featuretoggle
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/go-redis/redis"
 )
 
 type redisClient interface {
-	get(key string) (string, error)
+	subscribe(pattern string) (subs *redis.PubSub)
+	hgetall(namespace string) (map[string]string, error)
 }
 
 // RedisDB represents the Redis database client
@@ -24,6 +24,15 @@ func getRedisClient(host string, port string, db int) (rc redisClient, err error
 		DB:       db,
 	})
 
+	res := client.ConfigSet("notify-keyspace-events", "KEA")
+	if res == nil || res.Err() != nil {
+		err = fmt.Errorf(
+			"Failed to connect to redis feature toggle, cant configure client to notify changes: %s",
+			res.Err().Error(),
+		)
+		return
+	}
+
 	rc = &redisDB{client}
 
 	_, err = client.Ping().Result()
@@ -33,26 +42,19 @@ func getRedisClient(host string, port string, db int) (rc redisClient, err error
 	return
 }
 
-// Get get a result from a key
-func (c *redisDB) get(key string) (string, error) {
-	return c.Client.Get(key).Result()
+// subscribes to a given channel pattern, to receive messages from.
+// returns the subscriber
+func (db *redisDB) subscribe(pattern string) (subs *redis.PubSub) {
+	return db.Client.PSubscribe(pattern)
 }
 
-// redisDBMock represents the Redis database client mock
-type redisDBMock struct {
-	throwErr  bool
-	getResult string
-}
-
-// setGetResult sets the string that the mock should return when calling get
-func (c *redisDBMock) setGetResult(res string) {
-	c.getResult = res
-}
-
-func (c *redisDBMock) get(key string) (string, error) {
-	if c.throwErr {
-		return "", errors.New("Default error")
+// hgetall gets all the redis keys and values for a given namespace
+func (db *redisDB) hgetall(namespace string) (m map[string]string, err error) {
+	resp := db.Client.HGetAll(namespace)
+	if resp == nil || resp.Err() != nil {
+		err = fmt.Errorf("Failed to get the redis pairs for namespace %s: %s", namespace, resp.Err().Error())
 	}
 
-	return c.getResult, nil
+	m = resp.Val()
+	return
 }
