@@ -54,7 +54,7 @@ func waitForUpdates(sub *redis.PubSub) {
 	for {
 		select {
 		case msg := <-ch:
-			if msg != nil {
+			if msg == nil {
 				logger.Infof("Received a message via the feature toggle redis subscriber, but it was empty")
 				return
 			}
