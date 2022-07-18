@@ -4,11 +4,12 @@
   dm-go-ft
 </h2>
 
-Repositório para a biblioteca de feature toggle para projetos GO
+# Como funciona
+A biblioteca se conecta em um banco de dados no redis para buscar feature toggles ou remote configs dos projetos.
+Estes valores serão então salvos na memória local, para então ser possível acessá-los de maneira rápida, sem utilizar recursos de infra.
+A biblioteca fica esperando quaisquer atualizações nos feature toggles do projeto, para atualizar a memória local quando necessário.
 
 # Como usar
-A biblioteca se conecta em um banco de dados no redis para buscar feature toggles ou remote configs dos projetos.
-
 ## instalação
 ```bash
 go get github.com/delivery-much/dm-go-ft
