@@ -131,3 +131,21 @@ if featuretoggle.IsEnabledByPercent("MyKey") {
   // faz alguma coisa
 }
 ```
+
+## Utilizando a biblioteca nos testes
+A biblioteca tem capacidade nativa para ser Mockada, para isto basta utilizar a função `Mock`.
+
+Nesta função, será passado quais as chaves e valores específicas que devem estar presentes ao acessar as funções.
+Tanto as chaves quanto os valores devem ser passados em formato de `string`, mesmo em casos de números.
+
+É necessário apenas se atentar a uma particularidade da biblioteca de feature toggles:
+Para cada feature toggle, deve haver seu valor, e seu tipo (`"number"`, `"string"` ou `boolean`), como no exemplo abaixo.
+
+```go
+featuretoggle.Mock(map[string]string{
+  "MY_KEY": "my val",
+  "MY_KEY.type": "string",
+})
+```
+
+Desta forma, é possível especificar um comportamento para a biblioteca.

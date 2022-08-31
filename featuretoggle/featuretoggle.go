@@ -19,6 +19,12 @@ var (
 	serviceName string
 )
 
+// Mock mocks the feature toggle library, will use the keys provided as a param when acessing the feature toggles.
+// Used for testing
+func Mock(keys map[string]string) {
+	localMemory = keys
+}
+
 // Init inits the feature toggle library
 func Init(c Config) error {
 	cl, err := getRedisClient(c.Host, c.Port, c.DB)
