@@ -61,7 +61,7 @@ func waitForUpdates(sub *redis.PubSub) {
 		select {
 		case msg := <-ch:
 			if msg == nil {
-				logger.Infof("Received a message via the feature toggle redis subscriber, but it was empty")
+				logger.Info("Received a message via the feature toggle redis subscriber, but it was empty")
 				return
 			}
 
@@ -113,14 +113,14 @@ func IsEnabled(key string, defaultVal bool) (b bool) {
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("IsEnabled for key %s, the value was not found or empty")
+		logger.Infof("IsEnabled for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("IsEnabled for key %s, the value type was not found or empty")
+		logger.Infof("IsEnabled for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
@@ -146,19 +146,19 @@ func GetString(key string, defaultVal string) string {
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("GetString for key %s, the value was not found or empty")
+		logger.Infof("GetString for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("GetString for key %s, the value type was not found or empty")
+		logger.Infof("GetString for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
 	if t != "string" {
-		logger.Infof("GetString for key %s, the value was not a string")
+		logger.Infof("GetString for key %s, the value was not a string", key)
 		return defaultVal
 	}
 
@@ -179,14 +179,14 @@ func GetNumber(key string, defaultVal float64) float64 {
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("GetNumber for key %s, the value was not found or empty")
+		logger.Infof("GetNumber for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("GetNumber for key %s, the value type was not found or empty")
+		logger.Infof("GetNumber for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
@@ -216,14 +216,14 @@ func IsEnabledByPercent(key string) bool {
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("IsEnabledByPercent for key %s, the value was not found or empty")
+		logger.Infof("IsEnabledByPercent for key %s, the value was not found or empty", key)
 		return false
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("IsEnabledByPercent for key %s, the value type was not found or empty")
+		logger.Infof("IsEnabledByPercent for key %s, the value type was not found or empty", key)
 		return false
 	}
 
