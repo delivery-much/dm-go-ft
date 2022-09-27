@@ -3,6 +3,7 @@ package featuretoggle
 import (
 	"fmt"
 
+	"github.com/delivery-much/dm-go/logger"
 	"github.com/go-redis/redis"
 )
 
@@ -24,21 +25,20 @@ func getRedisClient(host string, port string, db int) (rc redisClient, err error
 		DB:       db,
 	})
 
-	res := client.ConfigSet("notify-keyspace-events", "KEA")
-	if res == nil || res.Err() != nil {
-		err = fmt.Errorf(
-			"Failed to connect to redis feature toggle, cant configure client to notify changes: %s",
-			res.Err().Error(),
+	configRes := client.ConfigSet("notify-keyspace-events", "KEA")
+	if configRes == nil || configRes.Err() != nil {
+		logger.Errorf(
+			"Failed to configure feature toggle redis client to notify changes: %s. The library will be initiated anyway",
+			configRes.Err().Error(),
 		)
-		return
 	}
-
-	rc = &redisDB{client}
 
 	_, err = client.Ping().Result()
 	if err != nil {
 		err = fmt.Errorf("Failed to connect to redis feature toggle with message: %s", err.Error())
 	}
+
+	rc = &redisDB{client}
 	return
 }
 
