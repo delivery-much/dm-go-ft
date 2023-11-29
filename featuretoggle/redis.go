@@ -27,7 +27,7 @@ func getRedisClient(host string, port string, db int) (rc redisClient, err error
 
 	configRes := client.ConfigSet("notify-keyspace-events", "KEA")
 	if configRes == nil || configRes.Err() != nil {
-		logger.Errorf(
+		logger.NoCTX().Errorf(
 			"Failed to configure feature toggle redis client to notify changes: %s. The library will be initiated anyway",
 			configRes.Err().Error(),
 		)

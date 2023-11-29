@@ -25,6 +25,13 @@ func Mock(keys map[string]string) {
 	localMemory = keys
 }
 
+// Reset resets the mock library to its empty state.
+func Reset() {
+	client = nil
+	localMemory = map[string]string{}
+	serviceName = ""
+}
+
 // Init inits the feature toggle library
 func Init(c Config) error {
 	cl, err := getRedisClient(c.Host, c.Port, c.DB)
@@ -47,7 +54,7 @@ func Init(c Config) error {
 		return err
 	}
 
-	logger.Infof("Redis feature toggle started for service %s", c.ServiceName)
+	logger.NoCTX().Infof("Redis feature toggle started for service %s", c.ServiceName)
 	return nil
 }
 
@@ -61,13 +68,13 @@ func waitForUpdates(sub *redis.PubSub) {
 		select {
 		case msg := <-ch:
 			if msg == nil {
-				logger.Info("Received a message via the feature toggle redis subscriber, but it was empty")
+				logger.NoCTX().Info("Received a message via the feature toggle redis subscriber, but it was empty")
 				return
 			}
 
 			separatedChannelName := strings.Split(msg.Channel, ":")
 			if len(separatedChannelName) < 2 {
-				logger.Infof(
+				logger.NoCTX().Infof(
 					"Failed to process the feature toggle update message, the channel name was in a unexpected format (%s)",
 					msg.Channel,
 				)
@@ -78,10 +85,10 @@ func waitForUpdates(sub *redis.PubSub) {
 			if msg.Payload == "hset" && channelID == serviceName {
 				err := buildCache()
 				if err != nil {
-					logger.Infof("Failed to rebuild feature toggle redis with message: %s", err.Error())
+					logger.NoCTX().Infof("Failed to rebuild feature toggle redis with message: %s", err.Error())
 					return
 				}
-				logger.Infof("Redis feature toggle rebuilt for %s", serviceName)
+				logger.NoCTX().Infof("Redis feature toggle rebuilt for %s", serviceName)
 			}
 		}
 	}
@@ -100,33 +107,38 @@ func buildCache() error {
 }
 
 // IsEnabled checks if given feature key is enabled in redis DB.
+//
 // returns the default value if:
+//
 // - the library was not initiated;
+//
 // - the key was not found;
+//
 // - the key value is empty;
+//
 // - the key value is not a boolean.
 func IsEnabled(key string, defaultVal bool) (b bool) {
 	if localMemory == nil {
-		logger.Infof("IsEnabled for key %s, the library was not initiated", key)
+		logger.NoCTX().Infof("IsEnabled for key %s, the library was not initiated", key)
 		return defaultVal
 	}
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("IsEnabled for key %s, the value was not found or empty", key)
+		logger.NoCTX().Infof("IsEnabled for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("IsEnabled for key %s, the value type was not found or empty", key)
+		logger.NoCTX().Infof("IsEnabled for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
 	b, err := strconv.ParseBool(val)
 	if err != nil || t != "boolean" {
-		logger.Infof("IsEnabled for key %s, the value was not a boolean", key)
+		logger.NoCTX().Infof("IsEnabled for key %s, the value was not a boolean", key)
 		return defaultVal
 	}
 
@@ -134,31 +146,35 @@ func IsEnabled(key string, defaultVal bool) (b bool) {
 }
 
 // GetString returns the string value for the given key.
+//
 // returns the default value if:
+//
 // - the library was not initiated;
+//
 // - the key was not found;
+//
 // - the key value is empty.
 func GetString(key string, defaultVal string) string {
 	if localMemory == nil {
-		logger.Infof("GetString for key %s, the library was not initiated", key)
+		logger.NoCTX().Infof("GetString for key %s, the library was not initiated", key)
 		return defaultVal
 	}
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("GetString for key %s, the value was not found or empty", key)
+		logger.NoCTX().Infof("GetString for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("GetString for key %s, the value type was not found or empty", key)
+		logger.NoCTX().Infof("GetString for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
 	if t != "string" {
-		logger.Infof("GetString for key %s, the value was not a string", key)
+		logger.NoCTX().Infof("GetString for key %s, the value was not a string", key)
 		return defaultVal
 	}
 
@@ -166,33 +182,38 @@ func GetString(key string, defaultVal string) string {
 }
 
 // GetNumber returns the number value for the given key.
+//
 // returns the default value if:
+//
 // - the library was not initiated;
+//
 // - the key was not found;
+//
 // - the key value is empty;
+//
 // - the key value is not a boolean.
 func GetNumber(key string, defaultVal float64) float64 {
 	if localMemory == nil {
-		logger.Infof("GetNumber for key %s, the library was not initiated", key)
+		logger.NoCTX().Infof("GetNumber for key %s, the library was not initiated", key)
 		return defaultVal
 	}
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("GetNumber for key %s, the value was not found or empty", key)
+		logger.NoCTX().Infof("GetNumber for key %s, the value was not found or empty", key)
 		return defaultVal
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("GetNumber for key %s, the value type was not found or empty", key)
+		logger.NoCTX().Infof("GetNumber for key %s, the value type was not found or empty", key)
 		return defaultVal
 	}
 
-	n, err := strconv.ParseFloat(val, 10)
+	n, err := strconv.ParseFloat(val, 64)
 	if err != nil || t != "number" {
-		logger.Infof("GetNumber for key %s, the value is not a valid number", key)
+		logger.NoCTX().Infof("GetNumber for key %s, the value is not a valid number", key)
 		return defaultVal
 	}
 
@@ -202,39 +223,45 @@ func GetNumber(key string, defaultVal float64) float64 {
 // IsEnabledByPercent checks the redis key value for a percentage number (between 0 and 100),
 // calculates an random number (also between 0 and 100), and returns true or false depending whether
 // the calculated number is within the found percentage.
+//
 // returns false if:
+//
 // - the library was not initiated;
+//
 // - the key was not found;
+//
 // - the key value is empty;
+//
 // - the key value is not a percentage (number between 0 and 100);
+//
 // - the random number greater than the found percentage.
 func IsEnabledByPercent(key string) bool {
 	if localMemory == nil {
-		logger.Infof("IsEnabledByPercent for key %s, the library was not initiated", key)
+		logger.NoCTX().Infof("IsEnabledByPercent for key %s, the library was not initiated", key)
 		return false
 	}
 
 	val, ok := localMemory[key]
 	if !ok || strings.TrimSpace(val) == "" {
-		logger.Infof("IsEnabledByPercent for key %s, the value was not found or empty", key)
+		logger.NoCTX().Infof("IsEnabledByPercent for key %s, the value was not found or empty", key)
 		return false
 	}
 
 	typeKey := fmt.Sprintf("%s.type", key)
 	t, ok := localMemory[typeKey]
 	if !ok || strings.TrimSpace(t) == "" {
-		logger.Infof("IsEnabledByPercent for key %s, the value type was not found or empty", key)
+		logger.NoCTX().Infof("IsEnabledByPercent for key %s, the value type was not found or empty", key)
 		return false
 	}
 
 	n, err := strconv.Atoi(val)
 	if err != nil || t != "number" {
-		logger.Infof("IsEnabledByPercent for key %s, the value is not a number", key)
+		logger.NoCTX().Infof("IsEnabledByPercent for key %s, the value is not a number", key)
 		return false
 	}
 
 	if n > 100 || n < 0 {
-		logger.Infof("IsEnabledByPercent for key %s, the value is not in percentage format", key)
+		logger.NoCTX().Infof("IsEnabledByPercent for key %s, the value is not in percentage format", key)
 		return false
 	}
 
