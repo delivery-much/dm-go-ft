@@ -1,6 +1,9 @@
 package featuretoggle
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestIsEnabled(t *testing.T) {
 	t.Run("Should return the default value if the local memory is empty", func(t *testing.T) {
@@ -440,6 +443,115 @@ func TestIsEnabledByPercent(t *testing.T) {
 				"Should have returned false if the key value was a non percentage value, actualy returned %v",
 				actual,
 			)
+		}
+	})
+}
+
+func TestGet(t *testing.T) {
+	t.Run("Should return the default value if the library was not initiated", func(t *testing.T) {
+		localMemory = nil
+
+		defaultVal := 10
+		result := Get("MyKey", defaultVal)
+		if result != defaultVal {
+			t.Errorf(
+				"Expected action to return the default value, instead returned %v",
+				result,
+			)
+		}
+	})
+	t.Run("Should return the default value if the provided key has no value associated to it", func(t *testing.T) {
+		localMemory = map[string]string{
+			"anotherkey": "anotherval",
+		}
+
+		defaultVal := 10
+		result := Get("MyKey", defaultVal)
+		if result != defaultVal {
+			t.Errorf(
+				"Expected action to return the default value, instead returned %v",
+				result,
+			)
+		}
+	})
+	t.Run("Should return the default value if the provided type (T) does not match with the value associated with the key", func(t *testing.T) {
+		key := "MyKey"
+		localMemory = map[string]string{
+			key: `"this is not a number"`,
+		}
+
+		defaultVal := 10
+		result := Get(key, defaultVal)
+		if result != defaultVal {
+			t.Errorf(
+				"Expected action to return the default value, instead returned %v",
+				result,
+			)
+		}
+	})
+	t.Run("Should parse a string value correctly", func(t *testing.T) {
+		key := "MyKey"
+
+		localMemory = map[string]string{
+			key: "stringFeatureToggleValue",
+		}
+		result := Get(key, "")
+		if result != "stringFeatureToggleValue" {
+			t.Errorf("Failed to assert GetJSON result. Returned: %s", result)
+		}
+	})
+	t.Run("Should parse a number value correctly", func(t *testing.T) {
+		key := "MyKey"
+
+		localMemory = map[string]string{
+			key: "10",
+		}
+		result := Get(key, 20)
+		if result != 10 {
+			t.Errorf("Failed to assert GetJSON result. Returned: %v", result)
+		}
+	})
+	t.Run("Should parse a map value correctly", func(t *testing.T) {
+		key := "MyKey"
+
+		localMemory = map[string]string{
+			key: `{"mykey1": "myval", "mykey2": 20}`,
+		}
+
+		expected := map[string]any{
+			"mykey1": "myval",
+			"mykey2": float64(20),
+		}
+		result := Get(key, map[string]any{})
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("Failed to assert GetJSON result. Returned: %v", result)
+		}
+	})
+	t.Run("Should parse a struct value correctly", func(t *testing.T) {
+		key := "MyKey"
+
+		type mockStruct struct {
+			MyKey1 string `json:"mykey1"`
+			MyKey2 int    `json:"mykey2"`
+		}
+		localMemory = map[string]string{
+			key: `{"mykey1": "myval", "mykey2": 20}`,
+		}
+		expected := mockStruct{"myval", 20}
+		result := Get(key, mockStruct{})
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("Failed to assert GetJSON result. Returned: %v", result)
+		}
+	})
+	t.Run("Should parse a slice value correctly", func(t *testing.T) {
+		key := "MyKey"
+		localMemory = map[string]string{
+			key: `["string", 42, 12]`,
+		}
+		expected := []any{"string", float64(42), float64(12)}
+		result := Get(key, []any{})
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Failed to assert GetJSON result. Returned: %v", result)
 		}
 	})
 }

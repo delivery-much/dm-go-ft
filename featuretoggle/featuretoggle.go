@@ -1,8 +1,10 @@
 package featuretoggle
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -267,4 +269,59 @@ func IsEnabledByPercent(key string) bool {
 
 	r := rand.Intn(100)
 	return r <= n
+}
+
+/*
+Get gets a feature toggle by the key, but then parses that feature toggle value into the provided type (T) using json decoding.
+
+If the provided type (T) is string, the raw value from the feature toggle will be returned.
+
+returns the default value if:
+
+- the library was not initiated;
+
+- the key was not found;
+
+- the key value is empty.
+
+- the value stored in the key could not be parsed into the provided type (T)
+*/
+func Get[T any](key string, defaultVal T) (res T) {
+	if localMemory == nil {
+		logger.NoCTX().Infow("[Feature Toggle] The library was not initiated",
+			"key", key,
+			"method", "Get",
+		)
+		return defaultVal
+	}
+
+	val, ok := localMemory[key]
+	if !ok || strings.TrimSpace(val) == "" {
+		logger.NoCTX().Infow("[Feature Toggle] The value was not found",
+			"key", key,
+			"method", "Get",
+		)
+		return defaultVal
+	}
+
+	resPointer := new(T)
+	if reflect.TypeOf(*resPointer).Kind() == reflect.String {
+		res = any(val).(T)
+		return
+	}
+
+	err := json.Unmarshal([]byte(val), resPointer)
+	if err != nil {
+		title := fmt.Sprintf("[Feature Toggle] Failed to parse the remote config value to a %T value", res)
+		logger.NoCTX().Infow(title,
+			"key", key,
+			"method", "Get",
+			"error", err.Error(),
+		)
+
+		return defaultVal
+	}
+
+	res = *resPointer
+	return
 }
